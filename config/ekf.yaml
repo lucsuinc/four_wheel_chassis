@@ -1,0 +1,65 @@
+### EKF 融合配置 ###
+### 作用：融合轮式里程计 /odom 和 IMU /imu/data，并发布 odom -> base_footprint 的 TF。
+### 一般调参优先看 frequency、sensor_timeout、odom0_config、imu0_config；坐标系名称不要随意改。
+ekf_filter_node:
+  ros__parameters:
+    # 是否使用仿真时间。真车运行保持 false；仿真或 rosbag 回放按需要改 true。
+    use_sim_time: false
+    # 是否发布 world_frame -> base_link_frame 的 TF。bringup 中底盘控制器关闭 TF，由 EKF 统一发布。
+    publish_tf: true
+    # EKF 输出频率，单位：Hz。过低会让导航反馈变慢，过高会增加 CPU 占用。
+    frequency: 30.0
+    # 传感器超时时间，单位：秒。超过该时间没有新数据，该传感器会被临时忽略。
+    sensor_timeout: 0.1
+    # 二维模式。差速小车在地面运动应保持 true，忽略 z/roll/pitch 等 3D 状态。
+    two_d_mode: true
+    # TF 时间戳偏移，单位：秒。保持 0，避免未来 TF 让 AMCL 丢弃较早时间戳的 /scan。
+    transform_time_offset: 0.0
+    # 等待 TF 的超时时间，单位：秒。保持 0，避免滤波链路阻塞。
+    transform_timeout: 0.0
+    # 是否打印诊断信息。调试传感器融合时可保持 true。
+    print_diagnostics: true
+    # 是否输出详细 debug 文件/信息。正常运行保持 false。
+    debug: false
+
+    # 全局地图坐标系。只做里程计+IMU 融合时不会用到 map。
+    map_frame: map
+    # 里程计坐标系，作为本 EKF 的 world_frame。
+    odom_frame: odom
+    # 机器人底盘平面坐标系（和 URDF 里的 base_footprint 一致）。
+    base_link_frame: base_footprint
+    # EKF 输出所在世界坐标系。只融合里程计和 IMU 时通常保持 odom。
+    world_frame: odom
+
+    # 轮式里程计配置（底盘节点发布的 /odom）
+    # 格式: [x, y, z, roll, pitch, yaw, vx, vy, vz, vroll, vpitch, vyaw, ax, ay, az]
+    # 2D 小车主要相信线速度 vx 和 角速度 vyaw；位姿交给积分，不直接用 odom 的 x/y/yaw。
+    odom0: odom
+    odom0_config: [false, false, false,
+                   false, false, false,
+                   true,  false, false,
+                   false, false, true,
+                   false, false, false]
+    odom0_queue_size: 10
+    # false 表示允许消息按 ROS 正常回调队列处理；需要最低延迟时可改 true。
+    odom0_nodelay: false
+    # false 表示 /odom 已经是速度/位姿估计，不再做差分转换。
+    odom0_differential: false
+    # false 表示不把第一帧作为相对零点重置。
+    odom0_relative: false
+
+    # IMU 配置（imu_driver 发布的 /imu/data）
+    # 读取 Yaw 角（第 6 位）和 Yaw 角速度（第 12 位）。
+    imu0: imu/data
+    imu0_config: [false, false, false,
+                  false, false, true,
+                  false, false, false,
+                  false, false, true,
+                  false, false, false]
+    imu0_nodelay: false
+    imu0_differential: false
+    # true 表示把 IMU 第一帧作为角度零点（底盘校准最简单的方式）。
+    imu0_relative: true
+    imu0_queue_size: 10
+    # true 表示从 IMU 线加速度中移除重力。当前未融合线加速度，保持该值即可。
+    imu0_remove_gravitational_acceleration: true

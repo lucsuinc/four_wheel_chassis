@@ -4,6 +4,11 @@
 //
 // 输入:  /cmd_vel   (geometry_msgs/Twist)
 // 输出:  /odom      (nav_msgs/Odometry) + odom->base_footprint TF
+//
+// publish_tf 参数（默认 true）：
+//   只用底盘时，底盘自己发 odom->base_footprint TF；
+//   启用 robot_localization EKF 时（建图/导航），应设 publish_tf=false，
+//   由 EKF 统一发布 odom->base_footprint，避免两个节点抢着发 TF。
 // ============================================================
 
 #include <rclcpp/rclcpp.hpp>
@@ -95,6 +100,9 @@ public:
     last_cmd_vel_time_ = this->now();
     last_feedback_time_ = this->now();
 
+    // 是否由本节点发布 odom -> base_footprint TF
+    publish_tf_ = this->declare_parameter("publish_tf", true);
+
     RCLCPP_INFO(this->get_logger(), "四轮底盘控制节点启动成功！");
     init_ok_ = true;
   }
@@ -143,6 +151,9 @@ private:
   double odom_x_ = 0.0;
   double odom_y_ = 0.0;
   double odom_yaw_ = 0.0;
+
+  // 是否发布 TF（EKF 启用时应为 false，由 EKF 接管）
+  bool publish_tf_ = true;
 
   // 超时阈值：500ms 没收到 cmd_vel 自动停车
   static constexpr double CMD_VEL_TIMEOUT_S = 0.5;
@@ -221,7 +232,9 @@ private:
 
     // 6. 发布 odom 和 TF
     publish_odom(current_time, vx, wz);
-    publish_odom_tf(current_time);
+    if (publish_tf_) {
+      publish_odom_tf(current_time);
+    }
   }
 
   // ========== 发布 odom 消息 ==========

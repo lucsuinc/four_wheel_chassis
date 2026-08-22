@@ -12,6 +12,7 @@ find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(nav_msgs REQUIRED)
+find_package(sensor_msgs REQUIRED)
 find_package(tf2 REQUIRED)
 find_package(tf2_ros REQUIRED)
 
@@ -24,12 +25,30 @@ ament_target_dependencies(chassis_control_node
   rclcpp geometry_msgs nav_msgs tf2 tf2_ros
 )
 
-install(TARGETS chassis_control_node
+# IMU 驱动：N300Pro HiPNUC 协议 -> /imu/data
+# hipnuc_dec.c 是官方 C 解码器（CRC16 + 0x91 解析）
+add_executable(imu_driver
+  src/imu_driver.cpp
+  src/hipnuc_dec.c
+)
+target_include_directories(imu_driver PRIVATE src)
+ament_target_dependencies(imu_driver
+  rclcpp sensor_msgs
+)
+
+install(TARGETS
+  chassis_control_node
+  imu_driver
   DESTINATION lib/${PROJECT_NAME}
 )
 
 install(DIRECTORY launch urdf config
   DESTINATION share/${PROJECT_NAME}
+)
+
+install(PROGRAMS
+  scripts/bind_usb.sh
+  DESTINATION lib/${PROJECT_NAME}
 )
 
 ament_package()

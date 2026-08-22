@@ -10,6 +10,10 @@ chassis_control_node:
     max_linear_speed: 1.0
     max_angular_speed: 1.2
 
+    # 是否由底盘发布 odom -> base_footprint TF。
+    # 单独跑底盘保持 true；跑 bringup（EKF）时会被 launch 覆盖成 false。
+    publish_tf: true
+
     # 方向系数：哪个轮子转向不对，就把它改成 -1.0
     front_dir_low: 1.0
     front_dir_high: 1.0

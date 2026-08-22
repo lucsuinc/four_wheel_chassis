@@ -1,0 +1,8 @@
+imu_driver:
+  ros__parameters:
+    # N300Pro 串口设备（先运行 scripts/bind_usb.sh 生成固定别名）
+    serial_port: "/dev/robot_imu"
+    # IMU 输出坐标系，必须和 URDF 里的 imu_link 一致
+    frame_id: "imu_link"
+    # N300Pro 支持 115200 / 460800 / 921600
+    baud_rate: 115200
