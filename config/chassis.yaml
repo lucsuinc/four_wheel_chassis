@@ -1,0 +1,17 @@
+chassis_control_node:
+  ros__parameters:
+    can_interface: "can0"
+    front_node_id: 1
+    rear_node_id: 2
+
+    # 运动学参数（单位：米）
+    wheel_radius: 0.15
+    wheel_track: 0.5
+    max_linear_speed: 1.0
+    max_angular_speed: 1.2
+
+    # 方向系数：哪个轮子转向不对，就把它改成 -1.0
+    front_dir_low: 1.0
+    front_dir_high: 1.0
+    rear_dir_low: 1.0
+    rear_dir_high: 1.0
