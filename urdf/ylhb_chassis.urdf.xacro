@@ -35,12 +35,12 @@
     <origin xyz="-0.28 0 0.107" rpy="0 0 0"/>
   </joint>
 
-  <!-- 雷达：yaw 按实际安装角度标定 -->
+  <!-- 雷达：扫描 0° 即车头正方向（物理安装时雷达 0° 角/壳体背面朝车头） -->
   <link name="laser_link"/>
   <joint name="base_to_laser" type="fixed">
     <parent link="base_link"/>
     <child link="laser_link"/>
-    <origin xyz="-0.09 0 0.18" rpy="0 0 -1.5707963"/>
+    <origin xyz="-0.09 0 0.18" rpy="0 0 0"/>
   </joint>
 
 </robot>
